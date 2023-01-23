@@ -19,6 +19,17 @@ with open("tweets.txt", "r") as f:
 # Keep track of tweets that have been shared
 shared_tweets = set()
 
+# Create an instance of the URL shortener
+s = pyshorteners.Shortener()
+
+# Shorten URLs in tweets.txt
+for i, tweet in enumerate(tweets):
+    url_match = re.search("https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)", tweet)
+    if url_match:
+        original_url = url_match.group(0)
+        short_url = s.tinyurl.short(original_url)
+        tweets[i] = tweet.replace(original_url, short_url)
+
 while len(shared_tweets) < len(tweets):
     for tweet in tweets:
         if tweet in shared_tweets:
@@ -28,8 +39,9 @@ while len(shared_tweets) < len(tweets):
             api.update_status(tweet)
             shared_tweets.add(tweet)
             print("Tweet shared: ", tweet)
-            # Wait for 3 minutes
-            time.sleep(180)
+            for i in range(180, 0, -1):
+                print("Next tweet in: ", i, " seconds", end='\r')
+                time.sleep(1)
         except tweepy.TweepError as e:
             print("Error: ", e)
 print("All tweets have been shared.")
